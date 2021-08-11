@@ -30,7 +30,7 @@ const useStyles = makeStyles({
   }
 })
 
-export default function NewSocket({ ws }) {
+export default function NewSocket({ rootWs }) {
   const classes = useStyles()
   const [host, setHost] = useState('127.0.0.1')
   const [port, setPort] = useState('8081')
@@ -79,7 +79,7 @@ export default function NewSocket({ ws }) {
       project,
       code: 0b00000101
     }
-    ws.send(JSON.stringify(data))
+    rootWs.send(JSON.stringify(data))
   }
   return (
     <Card className={classes.root} variant="outlined">

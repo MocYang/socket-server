@@ -4,13 +4,14 @@
  * @FILE: config.js
  * @Email: 958292256@qq.com
  */
+
 const config = {
   connectionLimit: 10,
-  host: '127.0.0.1',
-  port: '3306',
-  user: 'root',
-  password: 'yy123456',
-  database: 'socket_server'
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_DATABASE
   // socketPath: '/tmp/mysql.sock'
 }
 

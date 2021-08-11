@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import Grid from '@material-ui/core/Grid'
 import NewSocket from './NewSocket'
-import SocketCard from './SocketCard'
+import SocketCard from '../../components/SocketCard'
 import { parse } from '../../util/index'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -17,7 +17,8 @@ import {
   setConnected,
   setConnectionModelOpen,
   selectDisconnectSignal,
-  setDisconnectSignal, setConnectSignal
+  setDisconnectSignal,
+  setConnectSignal
 } from '../../features/connection/connectionSlice'
 
 function Sockets() {
@@ -110,7 +111,7 @@ function Sockets() {
       <Grid container>
         <Grid item xs={12} sm={12} md={12} lg={12}>
           {/*新建一个socket server*/}
-          <NewSocket ws={rootSocketInstance} />
+          <NewSocket rootWs={rootSocketInstance} />
         </Grid>
 
         {/*显示已有的socket server*/}

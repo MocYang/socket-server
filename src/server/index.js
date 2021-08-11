@@ -81,13 +81,21 @@ rootWss.on('listening', () => {
 })
 
 rootWss.on('error', (e) => {
-  console.log('root wss emit error: ', e)
+  // console.log('root wss emit error: ', e)
 })
 
 rootWss.on('close', () => {
   console.log('root wss closed.')
 })
 
-server.listen(rootWebSocketServerPort, () => {
-  console.log(`Server listen on: ws://127.0.0.1:${rootWebSocketServerPort}`)
+server.on('error', (e) => {
+  console.log('server error', e)
 })
+
+try {
+  server.listen(rootWebSocketServerPort, () => {
+    console.log(`Server listen on: ws://127.0.0.1:${rootWebSocketServerPort}`)
+  })
+} catch (e) {
+
+}
