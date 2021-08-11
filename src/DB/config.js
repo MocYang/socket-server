@@ -4,7 +4,7 @@
  * @FILE: config.js
  * @Email: 958292256@qq.com
  */
-
+require('dotenv').config()
 const config = {
   connectionLimit: 10,
   host: process.env.DATABASE_HOST,
@@ -14,7 +14,6 @@ const config = {
   database: process.env.DATABASE_DATABASE
   // socketPath: '/tmp/mysql.sock'
 }
-
 module.exports = {
   config
 }

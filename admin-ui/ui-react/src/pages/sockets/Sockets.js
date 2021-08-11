@@ -6,9 +6,11 @@
  */
 import { useEffect, useState } from 'react'
 import Grid from '@material-ui/core/Grid'
+import Button from '@material-ui/core/Button'
+
 import NewSocket from './NewSocket'
 import SocketCard from '../../components/SocketCard'
-import { parse } from '../../util/index'
+import { parse, serializer } from '../../util/index'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   selectConnectSignal,
@@ -21,6 +23,11 @@ import {
   setConnectSignal
 } from '../../features/connection/connectionSlice'
 
+let handleRootSocketOnOpen = () => void 0
+let handleRootSocketOnMessage = () => void 0
+let handleRootSocketOnError = () => void 0
+let handleRootSocketOnClose = () => void 0
+
 function Sockets() {
   const dispatch = useDispatch()
   const connectSignal = useSelector(selectConnectSignal)
@@ -29,14 +36,26 @@ function Sockets() {
   const [rootSocketInstance, setRootSocketInstance] = useState(null)
   const [sockets, setSockets] = useState([])
 
+  // time to fetch server list.
+  const [getServerListSignal, setGetServerListSignal] = useState(false)
+
   useEffect(() => {
-    let handleRootSocketOnOpen = () => void 0
-    let handleRootSocketOnMessage = () => void 0
-    let handleRootSocketOnError = () => void 0
-    let handleRootSocketOnClose = () => void 0
+    return () => {
+      // unsubscribe only run before unmount.
+      if (rootSocketInstance) {
+        rootSocketInstance.removeEventListener('open', handleRootSocketOnOpen)
+        rootSocketInstance.removeEventListener('message', handleRootSocketOnMessage)
+        rootSocketInstance.removeEventListener('error', handleRootSocketOnError)
+        rootSocketInstance.removeEventListener('close', handleRootSocketOnClose)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     let socketInstance = null
 
     if (connectSignal && rootServerUrl) {
+      console.log('new server runs....')
       try {
         socketInstance = new WebSocket(rootServerUrl + '')
         dispatch(setConnecting(true))
@@ -52,24 +71,31 @@ function Sockets() {
         dispatch(setConnected(true))
         dispatch(setConnectionModelOpen(false))
         setRootSocketInstance(socketInstance)
+        setGetServerListSignal(true)
       }
 
       handleRootSocketOnMessage = (e) => {
         const socketData = parse(e.data)
-        console.log(socketData)
-        // server create success.
-        if (socketData.code === 0b00000110) {
-          setSockets(sockets => {
-            sockets.push(socketData.data)
-            return sockets.slice()
-          })
+        switch (socketData.code) {
+          // server create success.
+          case 0b00000110:
+            break;
+          // fetch all server instance list success
+          case 0b00010001:
+            const serverList = socketData.data
+            console.log(serverList)
+            setSockets(serverList)
+
+            // turn off signal, in order not to get data twice.
+            setGetServerListSignal(false)
+            break
+          // TODO: handle all error case.
         }
       }
 
       handleRootSocketOnError = () => {
         dispatch(setConnecting(false))
         dispatch(setConnected(false))
-        setRootSocketInstance(null)
       }
 
       handleRootSocketOnClose = () => {
@@ -85,18 +111,10 @@ function Sockets() {
         socketInstance.addEventListener('close', handleRootSocketOnClose)
       }
     }
-
-    return () => {
-      if (socketInstance) {
-        socketInstance.removeEventListener('open', handleRootSocketOnOpen)
-        socketInstance.removeEventListener('message', handleRootSocketOnMessage)
-        socketInstance.removeEventListener('error', handleRootSocketOnError)
-        socketInstance.removeEventListener('close', handleRootSocketOnClose)
-      }
-    }
   }, [connectSignal, rootServerUrl])
 
   useEffect(() => {
+    // signal to stop root server.
     if (disconnectSignal) {
       rootSocketInstance.close()
       setRootSocketInstance(null)
@@ -105,6 +123,20 @@ function Sockets() {
     }
   }, [disconnectSignal])
 
+  useEffect(() => {
+    if (getServerListSignal && rootSocketInstance) {
+      // after root server start. fetch all server list.
+      rootSocketInstance.send(serializer({
+        code: 0b00010000 // CODE_GET_SERVER_LIST
+      }))
+    }
+  }, [getServerListSignal, rootSocketInstance])
+
+  const handleRefreshServerList = () =>{
+    rootSocketInstance.send(serializer({
+      code: 0b00010000 // CODE_GET_SERVER_LIST
+    }))
+  }
 
   return (
     <>
@@ -117,11 +149,21 @@ function Sockets() {
         {/*显示已有的socket server*/}
         {
           sockets.map((socket, i) => (
-            <Grid key={i} item xs={12} sm={12} md={12} lg={12}>
+            <Grid key={socket.id} item xs={12} sm={12} md={12} lg={12}>
               <SocketCard config={socket} rootWs={rootSocketInstance} />
             </Grid>
           ))
         }
+
+        <Grid item >
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleRefreshServerList}
+          >
+            Refresh
+          </Button>
+        </Grid>
       </Grid>
     </>
   )

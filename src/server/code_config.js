@@ -30,6 +30,10 @@ const CODE_SOCKET_STOP_ERROR                     =    0b00001101   // 13  stop a
 const CODE_ADMIN_CLIENT_PUSH_MESSAGE             =    0b00001110   // 14 admin socket client push a new message.
 const CODE_SERVER_RECEIVE_ADMIN_MESSAGE          =    0b00001111   // 15 server receive admin socket client's new message.
 
+const CODE_GET_SERVER_LIST                       =    0b00010000   // 16 get all socket server.
+const CODE_GET_SERVER_LIST_SUCCESS               =    0b00010001   // 17 get all socket server success.
+const CODE_GET_SERVER_LIST_FAIL                  =    0b00010010   // 18 get all socket server fail.
+
 const CODE_UNEXPECTED_ERROR                      =    0b10000000   // XXX server occur some error.
 const CODE_MISSING_UUID                          =    0b10000001   // server receive message, but not specify uuid.
 const CODE_INVALID_UUID                          =    0b10000001   // server receive message, but not specify uuid.
@@ -58,5 +62,9 @@ module.exports = {
   CODE_ADMIN_CLIENT_PUSH_MESSAGE,
   CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
   CODE_MISSING_UUID,
-  CODE_INVALID_UUID
+  CODE_INVALID_UUID,
+
+  CODE_GET_SERVER_LIST,
+  CODE_GET_SERVER_LIST_SUCCESS,
+  CODE_GET_SERVER_LIST_FAIL
 }

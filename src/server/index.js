@@ -10,11 +10,13 @@ const uuid = require('uuid')
 const { parseSocketMsg } = require('./util')
 const { newSocketServer } = require('./newSocketServer')
 const { startSocketServer } = require('./startSocketServer')
+const { apiGetServerList } = require('./apiGetServerList')
 const { connectionMap } = require('./connections')
 
 const {
   CODE_NEW_SOCKET_SERVER,
-  CODE_SOCKET_START
+  CODE_SOCKET_START,
+  CODE_GET_SERVER_LIST
 } = require('./code_config.js')
 
 const Server = WebSocket.Server
@@ -54,6 +56,11 @@ rootWss.on('connection', (rootWs) => {
       // client request start a socket server. if socket(uuid) not exit, warn client.
       case CODE_SOCKET_START:
         startSocketServer(rootWs, msgObj)
+        break
+
+      // socket admin request get all server instance.
+      case CODE_GET_SERVER_LIST:
+        apiGetServerList(rootWs, msgObj)
         break
       default:
         break
