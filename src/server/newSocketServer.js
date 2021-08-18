@@ -29,7 +29,7 @@ const Server = WebSocket.Server
  * @param config {Object}
  */
 function newSocketServer(rootWs, config) {
-  const { host, port } = config
+  const { host, port, namespace } = config
   // todo: verify host&port.
   const address = `ws://${host}:${port}`
   const newServerUUID = uuid.v1()
@@ -122,37 +122,29 @@ function newSocketServer(rootWs, config) {
 
     wss.on('listening', () => {
       console.log('emit listening...')
-      const serverConfig = {
-        host: config.host,
-        port: config.port,
-        project: config.project,
-        uuid: newServerUUID,
-        status: CODE_ESTABLISHED,
-        timestamp: +new Date()
-      }
-
-      rootWs.send(serializer({
-        code: CODE_NEW_SOCKET_SERVER_SUCCESS,
-        msg: `new websocket server:${address} is created and ready for communicate.`,
-        data: serverConfig
-      }))
-
-      // new wss instance enqueue socket poll.
-      connectionMap.set(newServerUUID, {
-        ...serverConfig,
-        wss
-      })
 
       // insert new server to mysql.
+      const createdTime = new Date()
+      const createdTimestamp = +createdTime
       pool.query(
-        `insert into servers (host,port,created_at,timestamp,connecting,uuid) values (?,?,?,?,?,?);`,
-        [host, port, new Date(), +new Date(), 1, newServerUUID],
-        (err, results, fields) => {
+        `insert into servers (uuid,host,port,namespace,running,created_at,updated_at,created_at_timestamp,updated_at_timestamp) values (?,?,?,?,?,?,?,?,?);`,
+        [newServerUUID, host, port, namespace, 0, createdTime, createdTime, createdTimestamp, createdTimestamp],
+        (err, results) => {
           if (err) {
             console.log(err)
+            rootWs.send(serializer({
+              code: CODE_NEW_SOCKET_SERVER_FAIL,
+              msg: 'new server create fail.',
+              err: err
+            }))
             return
           }
           console.log(results)
+          rootWs.send(serializer({
+            code: CODE_NEW_SOCKET_SERVER_SUCCESS,
+            msg: 'new server create success.',
+            data: null
+          }))
         }
       )
     })

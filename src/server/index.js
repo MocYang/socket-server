@@ -48,19 +48,19 @@ rootWss.on('connection', (rootWs) => {
     console.log('root ws receive msg: ', msgObj)
 
     switch (msgObj.code) {
-      // client request new socket server
+      //  socket admin request new socket server
       case CODE_NEW_SOCKET_SERVER:
-        newSocketServer(rootWs, msgObj)
+        newSocketServer(rootWs, msgObj.data)
         break
 
-      // client request start a socket server. if socket(uuid) not exit, warn client.
+      //  socket admin request start a socket server. if socket(uuid) not exit, warn client.
       case CODE_SOCKET_START:
-        startSocketServer(rootWs, msgObj)
+        startSocketServer(rootWs, msgObj.data)
         break
 
       // socket admin request get all server instance.
       case CODE_GET_SERVER_LIST:
-        apiGetServerList(rootWs, msgObj)
+        apiGetServerList(rootWs)
         break
       default:
         break

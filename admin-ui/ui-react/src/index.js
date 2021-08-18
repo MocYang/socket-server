@@ -7,13 +7,11 @@ import { Provider } from 'react-redux'
 import reportWebVitals from './reportWebVitals'
 
 ReactDOM.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <Router>
-        <App />
-      </Router>
-    </Provider>
-  </React.StrictMode>,
+  <Provider store={store}>
+    <Router>
+      <App />
+    </Router>
+  </Provider>,
   document.getElementById('root')
 )
 

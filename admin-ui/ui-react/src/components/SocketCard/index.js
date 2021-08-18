@@ -25,7 +25,6 @@ import TimelineDot from '@material-ui/lab/TimelineDot'
 import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent'
 import Grid from '@material-ui/core/Grid'
 
-import ConnectionStatus from '../../components/ConnectionStatus'
 import { serializer, parse } from '../../util'
 
 const useStyles = makeStyles({
@@ -67,6 +66,11 @@ SocketCard.propTyeps = {
   rootWs: PropTypes.object.isRequired
 }
 
+let handleWsOpen = () => void null
+let handleWsOnMessage = () => void null
+let handleWsOnError = () => void null
+let handleWsOnClose = () => void null
+
 export default function SocketCard({
   config,
   rootWs
@@ -77,69 +81,80 @@ export default function SocketCard({
     port,
     status,
     uuid,
-    project
+    running,
+    namespace: project
   } = config
   const classes = useStyles()
   const [message, setMessage] = useState('')
   const [ws, setWsInstance] = useState(null)
   const [messageQueue, setMessageQueue] = useState([])
+  const [serverRunning] = useState(running || false)
 
   useEffect(() => {
-    const wsInstance = new WebSocket(`${protocol}://${host}:${port}`)
-    const handleWsOpen = (e) => {
-      setWsInstance(wsInstance)
-    }
-
-    const handleWsOnMessage = (e) => {
-      const msg = parse(e.data)
-      console.log('receive message from server: ', msg)
-      // CODE_SERVER_RECEIVE_ADMIN_MESSAGE
-      if (msg.code === 0b00001111) {
-        setMessageQueue(queue => {
-          queue.push(msg.data)
-          return queue.slice()
-        })
-
-        setMessage('')
+    console.log(serverRunning)
+    if (serverRunning) {
+      const address = `${protocol}://${host}:${port}`
+      const wsInstance = new WebSocket(address)
+      handleWsOpen = () => {
+        console.log(`${address} is running...`)
+        setWsInstance(wsInstance)
       }
+
+      handleWsOnMessage = (e) => {
+        const msg = parse(e.data)
+        console.log('receive message from server: ', msg)
+        // CODE_SERVER_RECEIVE_ADMIN_MESSAGE
+        if (msg.code === 0b00001111) {
+          setMessageQueue(queue => {
+            queue.push(msg.data)
+            return queue.slice()
+          })
+
+          setMessage('')
+        }
+      }
+
+      handleWsOnError = (e) => {
+        console.log(e)
+        // setServerRunning(false)
+      }
+
+      handleWsOnClose = (e) => {
+        console.log(e)
+        // setServerRunning(false)
+      }
+      wsInstance.addEventListener('open', handleWsOpen)
+      wsInstance.addEventListener('message', handleWsOnMessage)
+      wsInstance.addEventListener('error', handleWsOnError)
+      wsInstance.addEventListener('close', handleWsOnClose)
     }
-
-    const handleWsOnError = (e) => {
-
-    }
-
-    const handleWsOnClose = (e) => {
-
-    }
-
-    wsInstance.addEventListener('open', handleWsOpen)
-    wsInstance.addEventListener('message', handleWsOnMessage)
-    wsInstance.addEventListener('error', handleWsOnError)
-    wsInstance.addEventListener('close', handleWsOnClose)
 
     return () => {
-      if (wsInstance) {
-        wsInstance.removeEventListener('open', handleWsOpen)
-        wsInstance.removeEventListener('message', handleWsOnMessage)
-        wsInstance.removeEventListener('error', handleWsOnError)
-        wsInstance.removeEventListener('close', handleWsOnClose)
+      if (ws) {
+        ws.removeEventListener('open', handleWsOpen)
+        ws.removeEventListener('message', handleWsOnMessage)
+        ws.removeEventListener('error', handleWsOnError)
+        ws.removeEventListener('close', handleWsOnClose)
       }
     }
-  }, [])
+  }, [serverRunning])
+
+  useEffect(() => {
+    // handleStartServer()
+  },[serverRunning])
 
   // TODO:  sync message that had send to server. show current send message on panel.
   const handleStartServer = () => {
-    console.log('click Start button.')
     rootWs.send(serializer({
       code: 0b00001000,
-      data: {uuid}
+      data: { uuid }
     }))
   }
 
   const handleStopServer = () => {
     rootWs.send(serializer({
       code: 0b00001011,
-      data: {uuid}
+      data: { uuid }
     }))
   }
 
@@ -166,7 +181,7 @@ export default function SocketCard({
     <Grid container justifyContent="center" spacing={1}>
       <Grid item xs={4}>
         <Card className={classes.root}>
-          <CardHeader title={'WebSocket Server'}/>
+          <CardHeader title={'WebSocket Server'} />
           <CardContent>
             <Typography className={classes.pos} color="textSecondary">
               Host: {host}
@@ -180,9 +195,11 @@ export default function SocketCard({
             <Typography variant="body2" component="p">
               project: {project}
             </Typography>
+            <Typography variant="body2" component="p">
+              status: {serverRunning ? 'RUNNING' : 'STOP'}
+            </Typography>
           </CardContent>
           <CardActions>
-            <ConnectionStatus/>
             <Button size="medium" variant="outlined" onClick={handleStartServer}>Start</Button>
             <Button size="medium" variant="outlined" onClick={handleStopServer}>Stop</Button>
           </CardActions>
@@ -231,8 +248,8 @@ export default function SocketCard({
                         </Typography>
                       </TimelineOppositeContent>
                       <TimelineSeparator>
-                        <TimelineDot/>
-                        <TimelineConnector/>
+                        <TimelineDot />
+                        <TimelineConnector />
                       </TimelineSeparator>
                       <TimelineContent>
                         <Typography>{message.message}</Typography>

@@ -73,13 +73,15 @@ export default function NewSocket({ rootWs }) {
 
     console.log(`create new websocket ws://${host}:${port}`)
 
-    const data = {
-      host,
-      port,
-      project,
-      code: 0b00000101
+    const config = {
+      code: 0b00000101,
+      data: {
+        host,
+        port,
+        namespace: project
+      }
     }
-    rootWs.send(JSON.stringify(data))
+    rootWs.send(JSON.stringify(config))
   }
   return (
     <Card className={classes.root} variant="outlined">
