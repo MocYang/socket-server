@@ -20,13 +20,22 @@ export const socketSlice = createSlice({
     },
     setFetchServerStatus:(state, action) => {
       state.fetchServerStatus = action.payload
+    },
+    // update a started server's running status.
+    updateServerStatus: (state, action) => {
+      const serverUUID = action.payload
+      state.sockets = state.sockets.map(server => ({
+        ...server,
+        running: server.uuid === serverUUID
+      }))
     }
   }
 })
 
 export const {
   setSockets,
-  setFetchServerStatus
+  setFetchServerStatus,
+  updateServerStatus
 } = socketSlice.actions
 
 export const selectSocketList = (store) => store.socket.sockets

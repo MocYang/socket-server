@@ -10,12 +10,15 @@ const {
   serializer
 } = require('./util')
 const { pool } = require('../DB/connectionPool')
-
+const { parseSocketMsg } = require('./util')
 const {
   CODE_SOCKET_START_ERROR,
   CODE_SOCKET_START_SUCCESS,
   CODE_OPEN,
-  CODE_UNEXPECTED_ERROR
+  CODE_UNEXPECTED_ERROR,
+  CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
+  CODE_ADMIN_CLIENT_PUSH_MESSAGE,
+  CODE_MESSAGE_SEND_FROM_SERVER
 } = require('./code_config.js')
 
 const Server = WebSocket.Server
@@ -78,10 +81,44 @@ function startSocketServer(rootWs, config) {
               msg: `WebSocket is connected.`,
               data: ''
             }))
+
+            console.log('all connected client:', wss.clients)
           })
 
           ws.on('message', (msgBuffer) => {
             // TODO: handle sub socket message event.
+            const msgObj = parseSocketMsg(msgBuffer)
+            console.log('receive message from client:', msgObj)
+            // message from admin client. means this message show send to all connected clients.
+            const { code, data } = msgObj
+            if (code === CODE_ADMIN_CLIENT_PUSH_MESSAGE) {
+              console.log(wss.clients)
+              // other client send data to this server.
+              const dataSendToClient = {
+                host,
+                port,
+                uuid,
+                message: msgObj.data.message,
+                sendTime: new Date().toISOString()
+              }
+              // send a confirm message to admin socket client.
+              ws.send(serializer({
+                code: CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
+                msg: 'receive message success.',
+                data: dataSendToClient
+              }))
+
+              // send message to all other connected clients.
+              Array.from(wss.clients).slice(1).forEach(socket => {
+                socket.send(serializer({
+                  code: CODE_MESSAGE_SEND_FROM_SERVER,
+                  msg: 'server push message.',
+                  data: dataSendToClient
+                }))
+              })
+            } else {
+              console.log('other client send message: ', data.message)
+            }
           })
 
           ws.on('error', (e) => {
@@ -109,28 +146,15 @@ function startSocketServer(rootWs, config) {
 
         wss.on('listening', () => {
           console.log(`start websocket: ${address} success.`)
-
-          // update server status to database
-          pool.query(
-            `update servers set running=(?),updated_at=(?), updated_at_timestamp=(?) where uuid=(?)`,
-            [1, new Date(), +new Date(), uuid],
-            (err, results) => {
-              if(err) {
-                console.log(err)
-                rootWs.send(serializer({
-                  code: CODE_SOCKET_START_ERROR,
-                  msg: `start websocket: ${address} fail.`,
-                  error: err
-                }))
-                return
-              }
-              rootWs.send(serializer({
-                code: CODE_SOCKET_START_SUCCESS,
-                msg: `start websocket: ${address} success.`,
-                data: null
-              }))
+          rootWs.send(serializer({
+            code: CODE_SOCKET_START_SUCCESS,
+            msg: `start websocket: ${address} success.`,
+            data: {
+              host,
+              port,
+              uuid
             }
-          )
+          }))
         })
 
         wss.on('close', () => {
@@ -138,7 +162,7 @@ function startSocketServer(rootWs, config) {
           pool.query(
             `update servers set running=(?) where uuid=(?)`,
             [0, uuid],
-            (err, result) => {
+            (err) => {
               if (err) {
                 console.log('update server running status fail.')
                 return

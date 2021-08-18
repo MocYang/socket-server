@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import Grid from '@material-ui/core/Grid'
 import NewClient from './NewClient'
-import ClientCard from '../../components/SocketCard'
+import ClientCard from './ClientCard'
 function Clients() {
   const [ws, setWsInstance] = useState(null)
   const [clients, setClients]= useState([])

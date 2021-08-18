@@ -75,9 +75,7 @@ export default function NewClient(props) {
       host,
       port,
       project
-      // code: 0b00000101
     }
-    // ws.send(JSON.stringify(data))
     handleNewClient(data)
   }
   return (

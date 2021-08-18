@@ -23,7 +23,6 @@ import TimelineContent from '@material-ui/lab/TimelineContent'
 import TimelineDot from '@material-ui/lab/TimelineDot'
 import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent'
 
-import ConnectionStatus from '../../components/ConnectionStatus'
 import { serializer, parse } from '../../util'
 import Grid from '@material-ui/core/Grid'
 
@@ -70,25 +69,32 @@ export default function ClientCard({ config }) {
     protocol = 'ws',
     host,
     port,
-    status,
-    uuid
+    status
   } = config
   const classes = useStyles()
   const [message, setMessage] = useState('')
   const [ws, setWsInstance] = useState(null)
   const [messageQueue, setMessageQueue] = useState([])
+  // signal to connect to server.
+  const [connectionSignal, setConnectionSignal] = useState(false)
+  // is client connected to server.
+  const [connected, setConnected] = useState(false)
 
   useEffect(() => {
+    console.log(connectionSignal)
     const wsInstance = new WebSocket(`${protocol}://${host}:${port}`)
+    console.log(wsInstance)
     const handleWsOpen = (e) => {
       setWsInstance(wsInstance)
+      setConnected(true)
+      console.log('connection opened...')
     }
 
     const handleWsOnMessage = (e) => {
       const msg = parse(e.data)
       console.log('receive message from server: ', msg)
-      // CODE_SERVER_RECEIVE_ADMIN_MESSAGE
-      if (msg.code === 0b00001111) {
+      // CODE_MESSAGE_SEND_FROM_SERVER
+      if (msg.code === 0b00010011) {
         setMessageQueue(queue => {
           queue.push(msg.data)
           return queue.slice()
@@ -119,19 +125,21 @@ export default function ClientCard({ config }) {
         wsInstance.removeEventListener('close', handleWsOnClose)
       }
     }
-  }, [])
+  }, [connectionSignal])
 
   // TODO:  sync message that had send to server. show current send message on panel.
   const handleStartServer = () => {
-
+    if (!connectionSignal) {
+      setConnectionSignal(true)
+    }
   }
 
   const handleStopServer = () => {
-
+    ws.close()
   }
 
   const handleMessageChange = (e) => {
-
+    setMessage(e.target.value)
   }
 
   const handleSendMessage = () => {
@@ -141,11 +149,11 @@ export default function ClientCard({ config }) {
         return
       }
 
-      ws.send(serializer({
-        code: 0b00001110,
-        uuid,
-        message
-      }))
+      // ws.send(serializer({
+      //   code: 0b00001110,
+      //   uuid,
+      //   message
+      // }))
     }
   }
 
@@ -153,7 +161,7 @@ export default function ClientCard({ config }) {
     <Grid container justifyContent="center" spacing={1}>
       <Grid item xs={4}>
         <Card className={classes.root}>
-          <CardHeader title={'WebSocket Server'} />
+          <CardHeader title={'WebSocket Client'} />
           <CardContent>
             <Typography variant="h5" component="h2">
               project
@@ -165,13 +173,12 @@ export default function ClientCard({ config }) {
               Port: {port}
             </Typography>
             <Typography variant="body2" component="p">
-              Status: {status}
+              Status: {connected ? 'connected' : 'disconnected'}
             </Typography>
           </CardContent>
           <CardActions>
-            <ConnectionStatus />
-            <Button size="medium" variant="outlined" onClick={handleStartServer}>Start</Button>
-            <Button size="medium" variant="outlined" onClick={handleStopServer}>Stop</Button>
+            <Button size="medium" variant="outlined" onClick={handleStartServer}>connect</Button>
+            <Button size="medium" variant="outlined" onClick={handleStopServer}>disconnect</Button>
           </CardActions>
         </Card>
       </Grid>
@@ -214,7 +221,7 @@ export default function ClientCard({ config }) {
                           color="textSecondary"
                           className={classes.timelineDate}
                         >
-                          {message.date.split('T')[0]}
+                          {message?.sendTime?.split('T')[0]}
                         </Typography>
                       </TimelineOppositeContent>
                       <TimelineSeparator>

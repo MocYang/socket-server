@@ -81,17 +81,15 @@ export default function SocketCard({
     port,
     status,
     uuid,
-    running,
+    running: serverRunning,
     namespace: project
   } = config
   const classes = useStyles()
   const [message, setMessage] = useState('')
   const [ws, setWsInstance] = useState(null)
   const [messageQueue, setMessageQueue] = useState([])
-  const [serverRunning] = useState(running || false)
 
   useEffect(() => {
-    console.log(serverRunning)
     if (serverRunning) {
       const address = `${protocol}://${host}:${port}`
       const wsInstance = new WebSocket(address)
@@ -139,9 +137,6 @@ export default function SocketCard({
     }
   }, [serverRunning])
 
-  useEffect(() => {
-    // handleStartServer()
-  },[serverRunning])
 
   // TODO:  sync message that had send to server. show current send message on panel.
   const handleStartServer = () => {
@@ -171,8 +166,10 @@ export default function SocketCard({
 
       ws.send(serializer({
         code: 0b00001110,
-        uuid,
-        message
+        data: {
+          uuid,
+          message
+        }
       }))
     }
   }
@@ -244,7 +241,7 @@ export default function SocketCard({
                           color="textSecondary"
                           className={classes.timelineDate}
                         >
-                          {message.date.split('T')[0]}
+                          {message?.sendTime?.split('T')[0]}
                         </Typography>
                       </TimelineOppositeContent>
                       <TimelineSeparator>
@@ -252,7 +249,7 @@ export default function SocketCard({
                         <TimelineConnector />
                       </TimelineSeparator>
                       <TimelineContent>
-                        <Typography>{message.message}</Typography>
+                        <Typography>{message?.message}</Typography>
                       </TimelineContent>
                     </TimelineItem>
                   ))

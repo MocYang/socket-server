@@ -18,7 +18,11 @@ import {
   setConnectSignal,
   setDisconnectSignal
 } from '../features/connection/connectionSlice'
-import { setFetchServerStatus, setSockets } from '../pages/sockets/socketSlice'
+import {
+  setFetchServerStatus,
+  setSockets,
+  updateServerStatus
+} from '../pages/sockets/socketSlice'
 import { parse } from '../util'
 import './app.scss'
 
@@ -70,7 +74,6 @@ function App() {
 
           // fetch all server instance list success
           case 0b00010001:
-            console.log('fetch server list success.')
             const serverList = socketData.data
             dispatch(setFetchServerStatus(false))
             dispatch(setSockets(serverList))
@@ -78,7 +81,8 @@ function App() {
 
           // start new server success.
           case 0b00001001:
-
+            // update which server running.
+            dispatch(updateServerStatus(socketData.data.uuid))
             break
 
           // fetch server list fail

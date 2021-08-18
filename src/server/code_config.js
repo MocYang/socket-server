@@ -34,6 +34,8 @@ const CODE_GET_SERVER_LIST                       =    0b00010000   // 16 get all
 const CODE_GET_SERVER_LIST_SUCCESS               =    0b00010001   // 17 get all socket server success.
 const CODE_GET_SERVER_LIST_FAIL                  =    0b00010010   // 18 get all socket server fail.
 
+const CODE_MESSAGE_SEND_FROM_SERVER              =    0b00010011   // 19 socket server send message to client.
+
 const CODE_UNEXPECTED_ERROR                      =    0b10000000   // XXX server occur some error.
 const CODE_MISSING_UUID                          =    0b10000001   // server receive message, but not specify uuid.
 const CODE_INVALID_UUID                          =    0b10000001   // server receive message, but not specify uuid.
@@ -63,6 +65,8 @@ module.exports = {
   CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
   CODE_MISSING_UUID,
   CODE_INVALID_UUID,
+
+  CODE_MESSAGE_SEND_FROM_SERVER,
 
   CODE_GET_SERVER_LIST,
   CODE_GET_SERVER_LIST_SUCCESS,
