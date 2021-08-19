@@ -17,10 +17,11 @@ function Clients() {
   }
   return (
     <div className="clients">
-      <Grid xs={12}>
-        <header>Client</header>
-      </Grid>
       <Grid container>
+        <Grid item xs={12}>
+          <header>Client</header>
+        </Grid>
+
         <Grid item xs={12} sm={12} md={12} lg={12}>
           <NewClient ws={ws} handleNewClient={handleNewClient}/>
         </Grid>

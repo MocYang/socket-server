@@ -32,7 +32,6 @@ function ConnectionModal() {
   const connectionModelOpen = useSelector(selectConnectionModelOpen)
   const connecting = useSelector(selectConnecting)
   const connected = useSelector(selectConnected)
-
   const [rootServerHost, setRootServerHost] = useState('127.0.0.1')
   const [rootServerPort, setRootServerPort] = useState('8080')
 

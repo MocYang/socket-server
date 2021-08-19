@@ -10,7 +10,7 @@ import { createSlice } from '@reduxjs/toolkit'
 export const connectionSlice = createSlice({
   name: 'connection',
   initialState: {
-    rootServerUrl: '',
+    rootServerUrl: 'ws://127.0.0.1:8080',
     connectSignal: false,
     disconnectSignal: false,
     connecting: false,            // require to establish connection.

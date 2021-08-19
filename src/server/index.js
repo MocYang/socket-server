@@ -75,6 +75,7 @@ rootWss.on('connection', (rootWs) => {
     console.log('rootWs was closed.')
   })
 
+  // cache root server
   connectionMap.set(rootWebSocketServerUUID, {
     host: rootWebSocketServerHost,
     port: rootWebSocketServerPort,
@@ -84,15 +85,16 @@ rootWss.on('connection', (rootWs) => {
 })
 
 rootWss.on('listening', () => {
-  console.log('root wss emit listening.')
+  console.log('root wss is now running.')
 })
 
 rootWss.on('error', (e) => {
-  // console.log('root wss emit error: ', e)
+  console.log('root wss emit error: ', e)
 })
 
 rootWss.on('close', () => {
   console.log('root wss closed.')
+  connectionMap.delete(rootWebSocketServerUUID)
 })
 
 server.on('error', (e) => {
@@ -104,5 +106,5 @@ try {
     console.log(`Server listen on: ws://127.0.0.1:${rootWebSocketServerPort}`)
   })
 } catch (e) {
-
+  console.log(e)
 }

@@ -4,9 +4,8 @@
  * @FILE: Sockets.js
  * @Email: 958292256@qq.com
  */
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import Grid from '@material-ui/core/Grid'
-import Button from '@material-ui/core/Button'
 
 import NewSocket from './NewSocket'
 import SocketCard from '../../components/SocketCard'
@@ -22,7 +21,6 @@ import {
 function Sockets() {
   const dispatch = useDispatch()
   const [rootSocketInstance] = useContext(RootSocketContext)
-
   const sockets = useSelector(selectSocketList)
 
   // time to fetch server list.
@@ -45,13 +43,12 @@ function Sockets() {
     }
   }, [fetchServerStatus, rootSocketInstance])
 
-  const handleRefreshServerList = () => {
-    dispatch(setFetchServerStatus(true))
-  }
-
   return (
     <>
-      <Grid container>
+      <Grid container className={''}>
+        <Grid item xs={12}>
+          <header>Servers</header>
+        </Grid>
         <Grid item xs={12} sm={12} md={12} lg={12}>
           {/*新建一个socket server*/}
           <NewSocket rootWs={rootSocketInstance} />
@@ -65,16 +62,6 @@ function Sockets() {
             </Grid>
           ))
         }
-
-        <Grid item>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleRefreshServerList}
-          >
-            Refresh
-          </Button>
-        </Grid>
       </Grid>
     </>
   )

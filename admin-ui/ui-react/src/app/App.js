@@ -6,9 +6,10 @@
  */
 import Navigation from '../components/Navigation'
 import ConnectionModal from '../components/ConnectionModal'
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
+  selectConnected,
   selectConnectSignal,
   selectDisconnectSignal,
   selectRootServerUrl,
@@ -37,15 +38,17 @@ function App() {
   const dispatch = useDispatch()
   const rootServerUrl = useSelector(selectRootServerUrl)
   const connectSignal = useSelector(selectConnectSignal)
+  const connected = useSelector(selectConnected)
   const disconnectSignal = useSelector(selectDisconnectSignal)
 
   const [rootSocketInstance, setRootSocketInstance] = useState(null)
   const rootSocketContext = useMemo(() => [rootSocketInstance, setRootSocketInstance], [rootSocketInstance])
   // const darkMode = useSelector(selectDarkMode)
   // const backgroundClassName = useSelector(selectBackgroundClassName)
-  useEffect(() => {
+
+  const connectToRootServer = useCallback((forceConnect = false) => {
     let socketInstance = null
-    if (connectSignal && rootServerUrl) {
+    if (connectSignal && rootServerUrl || forceConnect) {
       try {
         socketInstance = new WebSocket(rootServerUrl + '')
         dispatch(setConnecting(true))
@@ -85,6 +88,11 @@ function App() {
             dispatch(updateServerStatus(socketData.data.uuid))
             break
 
+          // server is already running.
+          case 0b00000001:
+            dispatch(updateServerStatus(socketData.data.uuid))
+            break
+
           // fetch server list fail
           case 0b00010010:
             dispatch(setFetchServerStatus(false))
@@ -110,6 +118,20 @@ function App() {
       }
     }
   }, [connectSignal, rootServerUrl])
+
+  useEffect(() => {
+    // try first connection on mount.
+    if (!connected) {
+      connectToRootServer(true)
+    }
+  }, [connected])
+
+  useEffect(() => {
+    // connect after connect button click.
+    if (!connected) {
+      connectToRootServer()
+    }
+  }, [connectSignal, rootServerUrl, connected])
 
   useEffect(() => {
     // signal to stop root server.

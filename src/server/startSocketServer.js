@@ -6,11 +6,10 @@
  * @Description
  */
 const WebSocket = require('ws')
-const {
-  serializer
-} = require('./util')
+const { serializer } = require('./util')
 const { pool } = require('../DB/connectionPool')
 const { parseSocketMsg } = require('./util')
+const { connectionMap } = require('./connections')
 const {
   CODE_SOCKET_START_ERROR,
   CODE_SOCKET_START_SUCCESS,
@@ -18,7 +17,8 @@ const {
   CODE_UNEXPECTED_ERROR,
   CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
   CODE_ADMIN_CLIENT_PUSH_MESSAGE,
-  CODE_MESSAGE_SEND_FROM_SERVER
+  CODE_MESSAGE_SEND_FROM_SERVER,
+  CODE_ESTABLISHED
 } = require('./code_config.js')
 
 const Server = WebSocket.Server
@@ -37,6 +37,16 @@ function startSocketServer(rootWs, config) {
       code: CODE_SOCKET_START_ERROR,
       msg: 'To start a websocket server, uuid is required.',
       data: ''
+    }))
+    return
+  }
+  if (connectionMap.get(uuid)) {
+    rootWs.send(serializer({
+      code: CODE_ESTABLISHED,
+      msg: `server for ${uuid} is already running.`,
+      data: {
+        uuid
+      }
     }))
     return
   }
@@ -155,6 +165,13 @@ function startSocketServer(rootWs, config) {
               uuid
             }
           }))
+
+          // cache running server.
+          connectionMap.set(uuid, {
+            host,
+            port,
+            wss
+          })
         })
 
         wss.on('close', () => {

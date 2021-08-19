@@ -197,7 +197,14 @@ export default function SocketCard({
             </Typography>
           </CardContent>
           <CardActions>
-            <Button size="medium" variant="outlined" onClick={handleStartServer}>Start</Button>
+            <Button
+              size="medium"
+              variant="outlined"
+              onClick={handleStartServer}
+              disabled={serverRunning}
+            >
+              Start
+            </Button>
             <Button size="medium" variant="outlined" onClick={handleStopServer}>Stop</Button>
           </CardActions>
         </Card>
