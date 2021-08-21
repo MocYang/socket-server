@@ -65,9 +65,11 @@
   <input id="input" autocomplete="off" />
   <button>Send</button>
 </form>
-<script src="/socket.io/socket.io.js"></script>
+<script src="/socket.io.js"></script>
 <script>
-  const socket = io('ws://127.0.0.1:3000')
+  // const socket = io('ws://127.0.0.1:3000')
+  const socket = io.connect('ws://172.30.248.113:7001?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTEwLCJpYXQiOjE2Mjk0NTUxNTMsImV4cCI6MTYyOTcxNDM1M30.1xwbjw1M0wa0fIN2_FRzucaqFB6cf97EZUWNuFOulmQ')
+
   const $ul = document.getElementById('messages')
   const $form = document.getElementById('form')
   const $input = document.getElementById('input')
@@ -75,16 +77,23 @@
   $form.addEventListener('submit', (e) => {
     e.preventDefault()
     if ($input.value) {
-      socket.emit('chat message', $input.value)
-      console.log('client emit msg: ',$input.value)
+      // socket.emit('chat message', $input.value)
+      socket.emit('pos', $input.value)
+      console.log('client emit msg: ', $input.value)
       $input.value = ''
     }
+
+    // socket.emit("pos", "354218,430466,430511")
   })
 
   socket.on('server message', msg => {
     const $li = document.createElement('li')
     $li.innerHTML = `receive message from server: msg = ${msg}`
     $ul.appendChild($li)
+  })
+
+  socket.on('connect', res => {
+    console.log('connection success.')
   })
 </script>
 </body>

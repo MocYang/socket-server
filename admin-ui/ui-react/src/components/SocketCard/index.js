@@ -108,7 +108,7 @@ export default function SocketCard({
             return queue.slice()
           })
 
-          setMessage('')
+          // setMessage('')
         }
       }
 

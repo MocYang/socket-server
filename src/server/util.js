@@ -11,10 +11,16 @@
  */
 function parseSocketMsg(msgBuffer) {
   const msgString = msgBuffer.toString()
+  console.log(msgString)
   let msgObj = null
   try {
     msgObj = JSON.parse(msgString)
   } catch (e) {
+    if(typeof msgString === 'string') {
+      return {
+        data: msgString
+      }
+    }
     throw new Error(e)
   }
   return msgObj

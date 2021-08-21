@@ -120,11 +120,12 @@ function startSocketServer(rootWs, config) {
 
               // send message to all other connected clients.
               Array.from(wss.clients).slice(1).forEach(socket => {
-                socket.send(serializer({
-                  code: CODE_MESSAGE_SEND_FROM_SERVER,
-                  msg: 'server push message.',
-                  data: dataSendToClient
-                }))
+                // socket.send(serializer({
+                //   code: CODE_MESSAGE_SEND_FROM_SERVER,
+                //   msg: 'server push message.',
+                //   data: dataSendToClient
+                // }))
+                socket.send(serializer(parseSocketMsg(msgObj.data.message)))
               })
             } else {
               console.log('other client send message: ', data.message)
