@@ -26,6 +26,7 @@ import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent'
 import Grid from '@material-ui/core/Grid'
 
 import { serializer, parse } from '../../util'
+import TextField from '@material-ui/core/TextField'
 
 const useStyles = makeStyles({
   root: {
@@ -57,7 +58,8 @@ const useStyles = makeStyles({
   },
 
   timelineDate: {
-    width: '100px'
+    width: '100%',
+    margin: 0
   }
 })
 
@@ -88,6 +90,8 @@ export default function SocketCard({
   const [message, setMessage] = useState('')
   const [ws, setWsInstance] = useState(null)
   const [messageQueue, setMessageQueue] = useState([])
+  const [autoSendTicker, setAutoSendTicker] = useState(10000) // 10s per message
+
 
   useEffect(() => {
     if (serverRunning) {
@@ -103,10 +107,7 @@ export default function SocketCard({
         console.log('receive message from server: ', msg)
         // CODE_SERVER_RECEIVE_ADMIN_MESSAGE
         if (msg.code === 0b00001111) {
-          setMessageQueue(queue => {
-            queue.push(msg.data)
-            return queue.slice()
-          })
+          setMessageQueue(queue => [msg.data, ...queue])
 
           // setMessage('')
         }
@@ -165,13 +166,43 @@ export default function SocketCard({
       }
 
       ws.send(serializer({
-        code: 0b00001110,
+        code: 0b00001110,   // admin send to server, that this message should broadcast to all client.
         data: {
           uuid,
           message
         }
       }))
     }
+  }
+
+  const handleAutoSendMessage = () => {
+    if (!ws) {
+      alert('socket server is not running.')
+      return
+    }
+    if (!autoSendTicker) {
+      alert('ticker is not set.')
+      return
+    }
+    ws.send(serializer({
+      code: 0b00010100,
+      data: {
+        uuid,
+        auto: true,
+        ticker: autoSendTicker,
+        message
+      }
+    }))
+  }
+
+  const handleCancelAutoSendMessage = () => {
+    ws.send(serializer({
+      code: 0b00010101
+    }))
+  }
+
+  const formatISOTime = (ISOString) => {
+    return ISOString.split('T').join(' ').split('.')[0]
   }
 
   return (
@@ -214,7 +245,7 @@ export default function SocketCard({
         <Card className={classes.root}>
           <CardContent>
             <Typography className={classes.title} color="textSecondary" gutterBottom>
-              Send:
+              Send Message:
             </Typography>
             <Typography>
               <TextareaAutosize
@@ -228,6 +259,20 @@ export default function SocketCard({
           </CardContent>
           <CardActions>
             <Button size="medium" variant="outlined" onClick={handleSendMessage}>Send</Button>
+            <Button size="medium" variant="outlined" onClick={handleAutoSendMessage}>Auto Send</Button>
+            <TextField
+              label=""
+              value={autoSendTicker}
+              onChange={(e) => setAutoSendTicker(Number(e.target.value))}
+              style={{ margin: 8 }}
+              placeholder="100000"
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+            <Button size="medium" variant="outlined" onClick={handleCancelAutoSendMessage}>Cancel Auto</Button>
           </CardActions>
         </Card>
       </Grid>
@@ -242,13 +287,13 @@ export default function SocketCard({
               <Timeline align="left" className={classes.timeline}>
                 {
                   messageQueue.map((message, i) => (
-                    <TimelineItem key={i}>
+                    <TimelineItem key={message.sendTime}>
                       <TimelineOppositeContent>
                         <Typography
                           color="textSecondary"
                           className={classes.timelineDate}
                         >
-                          {message?.sendTime?.split('T')[0]}
+                          {formatISOTime(message?.sendTime)}
                         </Typography>
                       </TimelineOppositeContent>
                       <TimelineSeparator>

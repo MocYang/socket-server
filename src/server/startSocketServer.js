@@ -18,7 +18,9 @@ const {
   CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
   CODE_ADMIN_CLIENT_PUSH_MESSAGE,
   CODE_MESSAGE_SEND_FROM_SERVER,
-  CODE_ESTABLISHED
+  CODE_ESTABLISHED,
+  CODE_AUTO_SEND_MESSAGE,
+  CODE_CANCEL_AUTO_SEND_MESSAGE
 } = require('./code_config.js')
 
 const Server = WebSocket.Server
@@ -76,6 +78,9 @@ function startSocketServer(rootWs, config) {
       const host = serverToStart.host
       const port = serverToStart.port
       const address = `ws://${host}:${port}`
+
+      let autoSendTimer = 0
+
       try {
         const wss = new Server({
           port,
@@ -101,31 +106,53 @@ function startSocketServer(rootWs, config) {
             console.log('receive message from client:', msgObj)
             // message from admin client. means this message show send to all connected clients.
             const { code, data } = msgObj
+
+            // other client send data to this server.
+            const dataSendToClient = {
+              host,
+              port,
+              uuid,
+              message: data?.message
+            }
+
             if (code === CODE_ADMIN_CLIENT_PUSH_MESSAGE) {
-              // other client send data to this server.
-              const dataSendToClient = {
-                host,
-                port,
-                uuid,
-                message: msgObj.data.message,
-                sendTime: new Date().toISOString()
-              }
               // send a confirm message to admin socket client.
               ws.send(serializer({
                 code: CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
                 msg: 'receive message success.',
-                data: dataSendToClient
+                data: { ...dataSendToClient, sendTime: new Date().toISOString() }
               }))
 
               // send message to all other connected clients.
               Array.from(wss.clients).slice(1).forEach(socket => {
-                // socket.send(serializer({
-                //   code: CODE_MESSAGE_SEND_FROM_SERVER,
-                //   msg: 'server push message.',
-                //   data: dataSendToClient
-                // }))
-                socket.send(serializer(parseSocketMsg(msgObj.data.message)))
+                socket.send(serializer(parseSocketMsg(data.message)))
               })
+
+              // admin send a signal that, this message show broadcast interval.
+            } else if (code === CODE_AUTO_SEND_MESSAGE) {
+              const ticker = data.ticker
+
+              if (autoSendTimer) {
+                clearInterval(autoSendTimer)
+              }
+              autoSendTimer = setInterval(() => {
+                // send a confirm message to admin socket client.
+                ws.send(serializer({
+                  code: CODE_SERVER_RECEIVE_ADMIN_MESSAGE,
+                  msg: 'receive message success.',
+                  data: { ...dataSendToClient, sendTime: new Date().toISOString() }
+                }))
+
+                // send message to all other connected clients.
+                Array.from(wss.clients).slice(1).forEach(socket => {
+                  socket.send(serializer(parseSocketMsg(data.message)))
+                })
+              }, Number(ticker))
+
+              // cancel timer.
+            } else if (code === CODE_CANCEL_AUTO_SEND_MESSAGE) {
+              clearInterval(autoSendTimer)
+              autoSendTimer = null
             } else {
               console.log('other client send message: ', data.message)
             }
