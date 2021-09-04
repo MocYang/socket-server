@@ -97,6 +97,11 @@ function App() {
           case 0b00010010:
             dispatch(setFetchServerStatus(false))
             break
+
+          // server create fail
+          case 0b00000111:
+            console.error(socketData)
+            break
         }
       }
 

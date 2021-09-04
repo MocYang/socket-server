@@ -102,7 +102,6 @@ function startSocketServer(rootWs, config) {
             // message from admin client. means this message show send to all connected clients.
             const { code, data } = msgObj
             if (code === CODE_ADMIN_CLIENT_PUSH_MESSAGE) {
-              console.log(wss.clients)
               // other client send data to this server.
               const dataSendToClient = {
                 host,
