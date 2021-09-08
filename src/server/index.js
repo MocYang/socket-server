@@ -23,7 +23,7 @@ const Server = WebSocket.Server
 const server = http.createServer()
 
 const rootWebSocketServerHost = ''
-const rootWebSocketServerPort = 8080
+const rootWebSocketServerPort = 8888
 const rootWebSocketServerUUID = uuid.v1()    // v1() -- timestamp base.
 
 const rootWss = new Server({

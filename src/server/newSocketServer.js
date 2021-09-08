@@ -7,12 +7,12 @@
  */
 const WebSocket = require('ws')
 const uuid = require('uuid')
-const { pool } = require('../DB/connectionPool')
+const {pool} = require('../DB/connectionPool')
 // const { connectionMap } = require('./connections')
-const { serializer } = require('./util')
+const {serializer} = require('./util')
 const {
   CODE_NEW_SOCKET_SERVER_SUCCESS,
-  CODE_NEW_SOCKET_SERVER_FAIL,
+  CODE_NEW_SOCKET_SERVER_FAIL
 } = require('./code_config.js')
 
 const Server = WebSocket.Server
@@ -23,7 +23,12 @@ const Server = WebSocket.Server
  * @param config {Object}
  */
 function newSocketServer(rootWs, config) {
-  const { host, port, namespace } = config
+  const {
+    host,
+    port,
+    namespace,
+    message = ''
+  } = config
   // todo: verify host&port.
   const address = `ws://${host}:${port}`
   const newServerUUID = uuid.v1()
@@ -67,8 +72,8 @@ function newSocketServer(rootWs, config) {
       }
 
       pool.query(
-        `insert into servers (uuid,host,port,namespace,running,created_at,updated_at,created_at_timestamp,updated_at_timestamp) values (?,?,?,?,?,?,?,?,?);`,
-        [newServerUUID, host, port, namespace, 0, createdTime, createdTime, createdTimestamp, createdTimestamp],
+        `insert into servers (uuid,host,port,message,namespace,running,created_at,updated_at,created_at_timestamp,updated_at_timestamp) values (?,?,?,?,?,?,?,?,?,?);`,
+        [newServerUUID, host, port, message, namespace, 0, createdTime, createdTime, createdTimestamp, createdTimestamp],
         (err, results) => {
           if (err) {
             console.log(err)

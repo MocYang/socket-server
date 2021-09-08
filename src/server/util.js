@@ -16,7 +16,7 @@ function parseSocketMsg(msgBuffer) {
   try {
     msgObj = JSON.parse(msgString)
   } catch (e) {
-    if(typeof msgString === 'string') {
+    if (typeof msgString === 'string') {
       return {
         data: msgString
       }

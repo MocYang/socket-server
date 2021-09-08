@@ -83,15 +83,17 @@ export default function SocketCard({
     port,
     status,
     uuid,
+    message: rawMessage,  // 接口返回的原始数据字符串
     running: serverRunning,
     namespace: project
   } = config
   const classes = useStyles()
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState(rawMessage || '')
   const [ws, setWsInstance] = useState(null)
   const [messageQueue, setMessageQueue] = useState([])
   const [autoSendTicker, setAutoSendTicker] = useState(10000) // 10s per message
 
+  console.log(message)
 
   useEffect(() => {
     if (serverRunning) {
@@ -138,7 +140,6 @@ export default function SocketCard({
     }
   }, [serverRunning])
 
-
   // TODO:  sync message that had send to server. show current send message on panel.
   const handleStartServer = () => {
     rootWs.send(serializer({
@@ -164,6 +165,7 @@ export default function SocketCard({
         alert('socket server is not running.')
         return
       }
+
 
       ws.send(serializer({
         code: 0b00001110,   // admin send to server, that this message should broadcast to all client.
