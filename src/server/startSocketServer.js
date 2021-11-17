@@ -6,10 +6,10 @@
  * @Description
  */
 const WebSocket = require('ws')
-const {serializer} = require('./util')
-const {pool} = require('../DB/connectionPool')
-const {parseSocketMsg} = require('./util')
-const {connectionMap} = require('./connections')
+const { serializer } = require('./util')
+const { pool } = require('../DB/connectionPool')
+const { parseSocketMsg } = require('./util')
+const { connectionMap } = require('./connections')
 const {
   CODE_SOCKET_START_ERROR,
   CODE_SOCKET_START_SUCCESS,
@@ -32,7 +32,7 @@ const Server = WebSocket.Server
  */
 function startSocketServer(rootWs, config) {
   console.log('start socket server:', config)
-  const {uuid} = config
+  const { uuid } = config
 
   if (!uuid) {
     rootWs.send(serializer({

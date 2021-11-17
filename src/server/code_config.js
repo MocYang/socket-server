@@ -39,6 +39,10 @@ const CODE_MESSAGE_SEND_FROM_SERVER              =    0b00010011   // 19 socket 
 const CODE_AUTO_SEND_MESSAGE                     =    0b00010100   // 20 config server auto send message to all client.
 const CODE_CANCEL_AUTO_SEND_MESSAGE              =    0b00010101   // 21 cancel server auto send message to all client.
 
+const CODE_DELETE_SOCKET_SERVER                  =    0b00010110   // 22 delete a socket server.
+const CODE_DELETE_SOCKET_SERVER_FAIL             =    0b00010111   // 23 delete a socket server fail.
+const CODE_DELETE_SOCKET_SERVER_SUCCESS          =    0b00011000   // 24 delete a socket server success.
+
 const CODE_UNEXPECTED_ERROR                      =    0b10000000   // XXX server occur some error.
 const CODE_MISSING_UUID                          =    0b10000001   // server receive message, but not specify uuid.
 const CODE_INVALID_UUID                          =    0b10000001   // server receive message, but not specify uuid.
@@ -73,6 +77,10 @@ module.exports = {
   CODE_CANCEL_AUTO_SEND_MESSAGE,
 
   CODE_MESSAGE_SEND_FROM_SERVER,
+
+  CODE_DELETE_SOCKET_SERVER,
+  CODE_DELETE_SOCKET_SERVER_FAIL,
+  CODE_DELETE_SOCKET_SERVER_SUCCESS,
 
   CODE_GET_SERVER_LIST,
   CODE_GET_SERVER_LIST_SUCCESS,

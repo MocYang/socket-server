@@ -27,6 +27,8 @@ import Grid from '@material-ui/core/Grid'
 
 import { serializer, parse } from '../../util'
 import TextField from '@material-ui/core/TextField'
+import { updateServerStatus } from '../../pages/sockets/socketSlice'
+import { useDispatch } from 'react-redux'
 
 const useStyles = makeStyles({
   root: {
@@ -87,13 +89,12 @@ export default function SocketCard({
     running: serverRunning,
     namespace: project
   } = config
+  const dispatch = useDispatch()
   const classes = useStyles()
   const [message, setMessage] = useState(rawMessage || '')
   const [ws, setWsInstance] = useState(null)
   const [messageQueue, setMessageQueue] = useState([])
   const [autoSendTicker, setAutoSendTicker] = useState(10000) // 10s per message
-
-  console.log(message)
 
   useEffect(() => {
     if (serverRunning) {
@@ -161,11 +162,10 @@ export default function SocketCard({
 
   const handleSendMessage = () => {
     if (message) {
-      if (!ws) {
+      if (!serverRunning) {
         alert('socket server is not running.')
         return
       }
-
 
       ws.send(serializer({
         code: 0b00001110,   // admin send to server, that this message should broadcast to all client.
@@ -234,7 +234,7 @@ export default function SocketCard({
               size="medium"
               variant="outlined"
               onClick={handleStartServer}
-              disabled={serverRunning}
+              disabled={!!serverRunning}
             >
               Start
             </Button>

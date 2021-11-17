@@ -11,12 +11,16 @@ const { parseSocketMsg } = require('./util')
 const { newSocketServer } = require('./newSocketServer')
 const { startSocketServer } = require('./startSocketServer')
 const { apiGetServerList } = require('./apiGetServerList')
+const { stopSocketServer } = require('./stopSocketServer')
+const { deleteSocketServer } = require('./deleteSocketServer')
 const { connectionMap } = require('./connections')
 
 const {
   CODE_NEW_SOCKET_SERVER,
   CODE_SOCKET_START,
-  CODE_GET_SERVER_LIST
+  CODE_GET_SERVER_LIST,
+  CODE_SOCKET_STOP,
+  CODE_DELETE_SOCKET_SERVER
 } = require('./code_config.js')
 
 const Server = WebSocket.Server
@@ -45,22 +49,31 @@ rootWss.on('connection', (rootWs) => {
       return
     }
 
-    console.log('root ws receive msg: ', msgObj)
-
+    const config = msgObj.data
     switch (msgObj.code) {
       //  socket admin request new socket server
       case CODE_NEW_SOCKET_SERVER:
-        newSocketServer(rootWs, msgObj.data)
+        newSocketServer(rootWs, config)
         break
 
       //  socket admin request start a socket server. if socket(uuid) not exit, warn client.
       case CODE_SOCKET_START:
-        startSocketServer(rootWs, msgObj.data)
+        startSocketServer(rootWs, config)
         break
 
       // socket admin request get all server instance.
       case CODE_GET_SERVER_LIST:
         apiGetServerList(rootWs)
+        break
+
+      // stop a running server.
+      case CODE_SOCKET_STOP:
+        stopSocketServer(rootWs, config)
+        break
+
+
+      case CODE_DELETE_SOCKET_SERVER:
+        deleteSocketServer(rootWs, config)
         break
       default:
         break

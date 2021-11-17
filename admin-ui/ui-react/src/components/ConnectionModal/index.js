@@ -33,7 +33,7 @@ function ConnectionModal() {
   const connecting = useSelector(selectConnecting)
   const connected = useSelector(selectConnected)
   const [rootServerHost, setRootServerHost] = useState('127.0.0.1')
-  const [rootServerPort, setRootServerPort] = useState('8080')
+  const [rootServerPort, setRootServerPort] = useState('8888')
 
   const handleClose = () => {
     dispatch(setConnectionModelOpen(false))
@@ -87,7 +87,7 @@ function ConnectionModal() {
             value={rootServerPort}
             onChange={handleRootServerPortChange}
             style={{ margin: 8 }}
-            placeholder="8080"
+            placeholder="8888"
             fullWidth
             margin="dense"
             InputLabelProps={{

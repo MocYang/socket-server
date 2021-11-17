@@ -68,6 +68,7 @@ function App() {
 
       handleRootSocketOnMessage = (e) => {
         const socketData = parse(e.data)
+        const uuid = socketData.data.uuid
         switch (socketData.code) {
           // server create success.
           case 0b00000110:
@@ -85,12 +86,18 @@ function App() {
           // start new server success.
           case 0b00001001:
             // update which server running.
-            dispatch(updateServerStatus(socketData.data.uuid))
+            dispatch(updateServerStatus({
+              uuid,
+              running: true
+            }))
             break
 
           // server is already running.
           case 0b00000001:
-            dispatch(updateServerStatus(socketData.data.uuid))
+            dispatch(updateServerStatus({
+              uuid,
+              running: true
+            }))
             break
 
           // fetch server list fail
@@ -102,6 +109,20 @@ function App() {
           case 0b00000111:
             console.error(socketData)
             break
+
+          // CODE_SOCKET_STOP_SUCCESS
+          case 0b00001100:
+            console.log(uuid)
+            dispatch(updateServerStatus({
+              uuid,
+              running: false
+            }))
+
+            break
+
+          // socket server stop fail.
+          case 0b00001101:
+            console.log(socketData.msg)
         }
       }
 

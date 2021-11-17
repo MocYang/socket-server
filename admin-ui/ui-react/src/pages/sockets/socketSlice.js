@@ -23,10 +23,10 @@ export const socketSlice = createSlice({
     },
     // update a started server's running status.
     updateServerStatus: (state, action) => {
-      const serverUUID = action.payload
+      const { uuid, running } = action.payload
       state.sockets = state.sockets.map(server => ({
         ...server,
-        running: server.uuid === serverUUID
+        running: server.uuid === uuid ? running : server.running
       }))
     }
   }

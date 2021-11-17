@@ -109,7 +109,7 @@ export default function NewSocket({ rootWs }) {
           value={port}
           onChange={handlePortInput}
           style={{ margin: 8 }}
-          placeholder="8080"
+          placeholder="8081"
           helperText={portHelperText}
           fullWidth
           margin="normal"
